@@ -15,6 +15,7 @@ var writeNoteToFile = function (title, body) {
         body: body
     }
     // read the existing content
+
     let notesContent = readNotesFromFile();
 
     if (notesContent) {

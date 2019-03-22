@@ -1,6 +1,7 @@
 const fileHelper = require("./fileHandlerHelper");
 const yargs = require("yargs");
-
+let testing = "kfhgwkjfh";
+console.log(testing);
 //Add note command
 yargs.command({
     command: "addNote",
