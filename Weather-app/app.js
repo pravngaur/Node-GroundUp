@@ -1,5 +1,6 @@
-const serviceHelper = require("./serviceHelper.js");
+const serviceHelper = require("./mapBoxService");
 
-
-// mapBoxAPI.callMapBoxAPI("New York");
-serviceHelper.getWeatherInformation("New York");
+const address = process.argv[2];
+if(address){
+  serviceHelper(address);
+}
