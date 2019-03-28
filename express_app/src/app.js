@@ -1,9 +1,28 @@
+/**
+ * @author: Praveen Gaur
+ * @description:
+ * This is the starting point for the Weather application.
+ * 
+ * 1) Initializes express module, configures it for:
+ * a) Static public folder
+ * b) Using handlebars
+ * 
+ * 2) Configure handlebars
+ * 3) Defines the routes
+ * 4) Starts the server
+ * 
+ */
+
 // Loading native modules
 const path = require("path");
 
 //Loading NPM modules
 const express = require("express");
 const hbs = require("hbs");
+
+// loading custom modules
+const weatherService = require("./util/darkSkyService");
+const cordinatesService = require("./util/mapBoxService");
 
 // Initializing express
 const app = express();
@@ -23,30 +42,79 @@ app.set("views", viewsDirectoryPath);
 // Configuring handlebars to register the partials
 hbs.registerPartials(partialsDirectoryPath);
 
-//defining the routes
-app.get("/", (req, res)=>{
-    res.render("index",{
+//defining the home page routes
+app.get("/", (req, res) => {
+    res.render("index", {
         place: "Bangalore",
         forecast: "Clear weather all day.",
         rain: false
     });
 })
 
-app.get("/weather",(req, res)=>{
-    
-    const pageTitle = "<H1>Weather Information Page</H1>&nbsp;";
-    const jsonObject = {
-        place: "Bangalore",
-        forecast: "Clear weather all day.",
-        rain: false
+/**
+ * Route for getting the weather information
+ * @function
+ * @param {string} path - Express path
+ * @param {callback} middleware - Express middleware
+ * 
+ */
+app.get("/weather", (req, res) => {
+
+    const address = req.query.address;
+    if (address) {
+        cordinatesService(address, (error, response) => {
+            if (error) {
+                res.send(`Error in map box service:  ${error.message}`);
+                if (error.errorObj) {
+                    console.log(JSON.stringify(errorObj));
+                }
+            } else if (response) {
+
+                weatherService(response, (weatherError, weatherResponse, body) => {
+                    if (weatherError) {
+                        console.log('error in darkSky Service:', weatherError);
+                    } else if (weatherResponse && weatherResponse.statusCode && weatherResponse.statusCode === 200 && body) {
+                        res.render("weatherReport", {
+                            cordinates: {
+                                lattitude: response.latt,
+                                longitude: response.long,
+                                addressName: address
+                            },
+                            forecast: {
+                                summary: (body.currently.summary).toUpperCase(),
+                                currentTemperature: body.currently.temperature,
+                                rain: body.currently.precipProbability
+                            }
+
+                        });
+                    }
+                }); 
+            }
+        })
+    } else {
+        res.send("Please supply address query string..");
     }
-    res.send(pageTitle + JSON.stringify(jsonObject));
+
 });
 
-app.get("*",(req, res)=>{
+/**
+ * Route for for handling the 404 responses
+ * @function
+ * @param {string} path - Express path
+ * @param {callback} middleware - Express middleware
+ * 
+ */
+app.get("*", (req, res) => {
     res.render("404")
 });
 
-app.listen(3000,()=>{
+/**
+ * Starting the server
+ * @function
+ * @param {number} port - port on which the server will listen for requests
+ * @param {callback} middleware - Express middleware
+ * 
+ */
+app.listen(9229, () => {
     console.log("Server started!!");
 });

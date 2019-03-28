@@ -1,6 +1,10 @@
 const serviceHelper = require("./mapBoxService");
 
-const address = process.argv[2];
-if(address){
-  serviceHelper(address);
+const getWeatherService = (address) => {
+  
+  if (address) {
+    return serviceHelper(address);
+  }
 }
+
+module.exports = getWeatherService;
